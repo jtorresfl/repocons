@@ -13,6 +13,6 @@ export class App {
 
   protected logout(): void {
     this.auth.logout();
-    this.router.navigate(['/productos']);
+    this.router.navigate(['/publicaciones']);
   }
 }

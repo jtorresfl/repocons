@@ -65,3 +65,6 @@ export interface CategoryRequest { name: string; description: string; createdBy:
 
 export interface Collection { id: number; idCategory: number; name: string; description: string | null; status: boolean; }
 export interface CollectionRequest { idCategory: number; name: string; description: string; createdBy: string; }
+
+export interface User { username: string; email: string; phone: string | null; enabled: boolean; }
+export interface UserRequest { username: string; email: string; password: string; phone: string | null; }

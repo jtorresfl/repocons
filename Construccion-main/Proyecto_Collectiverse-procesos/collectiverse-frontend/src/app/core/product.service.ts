@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { API_URL } from './api';
 import { Product, ProductRequest } from './models';
 
@@ -14,12 +14,19 @@ export class ProductService {
     return this.http.get<Product[]>(this.url);
   }
 
+  /** GET /api/products indexado por id: sirve para cruzarlo con publication.idProduct */
+  mapById(): Observable<Map<number, Product>> {
+    return this.list().pipe(
+      map(list => new Map<number, Product>(list.map(p => [p.id, p] as [number, Product]))),
+    );
+  }
+
   /** GET /api/products/{id} */
   get(id: number): Observable<Product> {
     return this.http.get<Product>(`${this.url}/${id}`);
   }
 
-  /** GET /api/products/search?categoryId=&term=  (el backend exige al menos un filtro) */
+  /** GET /api/products/search?categoryId=&term= */
   search(categoryId: number | null, term: string): Observable<Product[]> {
     let params = new HttpParams();
     if (categoryId !== null) params = params.set('categoryId', categoryId);

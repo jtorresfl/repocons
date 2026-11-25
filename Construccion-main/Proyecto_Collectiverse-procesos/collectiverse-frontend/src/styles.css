@@ -96,3 +96,12 @@ a.plain { color: inherit; text-decoration: none; } a.plain:hover { color: var(--
 .offer-main { display: flex; flex-direction: column; gap: .3rem; }
 .offer-side { display: flex; flex-direction: column; align-items: flex-end; text-align: right; white-space: nowrap; }
 @media (max-width: 720px) { .detail { grid-template-columns: 1fr; } .offer { flex-direction: column; } .offer-side { align-items: flex-start; text-align: left; } }
+
+/* ---- tarjeta de publicación / cuenta / publicar ---- */
+app-publication-card { display: contents; }
+.product-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: .6rem .7rem; display: flex; flex-direction: column; gap: .35rem; }
+.auth form { margin-top: 1rem; }
+.profile { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 0; }
+.profile dt { font-size: .8rem; color: var(--muted); }
+.profile dd { margin: 0; font-weight: 600; word-break: break-word; }
+hr { border: 0; border-top: 1px solid var(--border); margin: .5rem 0; width: 100%; }

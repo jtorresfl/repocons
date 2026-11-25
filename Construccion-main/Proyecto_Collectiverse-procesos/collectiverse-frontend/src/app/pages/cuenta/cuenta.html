@@ -1,0 +1,92 @@
+@if (auth.isLoggedIn()) {
+  <!-- ===== PERFIL ===== -->
+  <section class="page-head">
+    <div>
+      <h1>Mi cuenta</h1>
+      <p class="muted">Sesión iniciada como <strong>{{ auth.username() }}</strong></p>
+    </div>
+    <div class="actions">
+      <a routerLink="/publicar" class="btn btn-primary">+ Publicar</a>
+      <button type="button" class="btn btn-ghost" (click)="logout()">Cerrar sesión</button>
+    </div>
+  </section>
+
+  @if (profileLoading()) {
+    <p class="muted center">Cargando perfil…</p>
+  } @else if (profileError()) {
+    <p class="alert alert-error">{{ profileError() }}</p>
+    <button type="button" class="btn btn-ghost" (click)="loadProfile()">Reintentar</button>
+  } @else if (user(); as u) {
+    <section class="card">
+      <dl class="profile">
+        <div><dt>Usuario</dt><dd>{{ u.username }}</dd></div>
+        <div><dt>Correo</dt><dd>{{ u.email }}</dd></div>
+        <div><dt>Teléfono</dt><dd>{{ u.phone || '—' }}</dd></div>
+        <div>
+          <dt>Estado</dt>
+          <dd><span class="badge" [class.badge-alt]="u.enabled">{{ u.enabled ? 'Activo' : 'Deshabilitado' }}</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <h2>Mis publicaciones</h2>
+    @if (myPublications().length === 0) {
+      <p class="muted center">Aún no tienes publicaciones.</p>
+    } @else {
+      <div class="cards">
+        @for (p of myPublications(); track p.id) {
+          <app-publication-card [publication]="p" [product]="products().get(p.idProduct) ?? null" />
+        }
+      </div>
+    }
+  }
+} @else {
+  <!-- ===== LOGIN / REGISTRO ===== -->
+  <section class="auth card">
+    <div class="tabs">
+      <button type="button" [class.active]="mode() === 'login'" (click)="setMode('login')">Ingresar</button>
+      <button type="button" [class.active]="mode() === 'register'" (click)="setMode('register')">Crear cuenta</button>
+    </div>
+
+    @if (mode() === 'login') {
+      <form [formGroup]="loginForm" (ngSubmit)="login()" novalidate>
+        <label class="field">
+          <span>Nombre de usuario</span>
+          <input type="text" formControlName="username" autocomplete="username" maxlength="50" />
+          @if (invalid('login', 'username')) { <small class="err">El usuario es obligatorio</small> }
+        </label>
+        @if (error()) { <p class="alert alert-error">{{ error() }}</p> }
+        <button type="submit" class="btn btn-primary block" [disabled]="busy()">
+          {{ busy() ? 'Verificando…' : 'Ingresar' }}
+        </button>
+      </form>
+    } @else {
+      <form [formGroup]="registerForm" (ngSubmit)="register()" novalidate>
+        <label class="field">
+          <span>Usuario *</span>
+          <input type="text" formControlName="username" autocomplete="username" maxlength="50" />
+          @if (invalid('register', 'username')) { <small class="err">Solo letras, números, punto, guion y guion bajo (máx. 50)</small> }
+        </label>
+        <label class="field">
+          <span>Correo *</span>
+          <input type="email" formControlName="email" autocomplete="email" maxlength="150" />
+          @if (invalid('register', 'email')) { <small class="err">Ingresa un correo válido</small> }
+        </label>
+        <label class="field">
+          <span>Contraseña *</span>
+          <input type="password" formControlName="password" autocomplete="new-password" maxlength="72" />
+          @if (invalid('register', 'password')) { <small class="err">Debe tener entre 8 y 72 caracteres</small> }
+        </label>
+        <label class="field">
+          <span>Teléfono (opcional)</span>
+          <input type="tel" formControlName="phone" autocomplete="tel" placeholder="+51987654321" />
+          @if (invalid('register', 'phone')) { <small class="err">Entre 7 y 15 dígitos, con + opcional</small> }
+        </label>
+        @if (error()) { <p class="alert alert-error">{{ error() }}</p> }
+        <button type="submit" class="btn btn-primary block" [disabled]="busy()">
+          {{ busy() ? 'Creando…' : 'Crear cuenta' }}
+        </button>
+      </form>
+    }
+  </section>
+}

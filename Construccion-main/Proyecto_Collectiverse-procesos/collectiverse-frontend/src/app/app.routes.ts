@@ -2,32 +2,22 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'productos' },
-  {
-    path: 'productos',
-    title: 'Productos · Collectiverse',
-    loadComponent: () => import('./pages/productos/productos').then(m => m.ProductosPage),
-  },
-  {
-    path: 'productos/:id',
-    title: 'Detalle de producto · Collectiverse',
-    loadComponent: () => import('./pages/producto-detalle/producto-detalle').then(m => m.ProductoDetallePage),
-  },
+  { path: '', pathMatch: 'full', redirectTo: 'publicaciones' },
   {
     path: 'publicaciones',
     title: 'Publicaciones · Collectiverse',
     loadComponent: () => import('./pages/publicaciones/publicaciones').then(m => m.PublicacionesPage),
   },
   {
-    path: 'categorias',
-    title: 'Categorías y colecciones · Collectiverse',
-    canActivate: [authGuard], // hace falta indicar un usuario (se envía como createdBy)
-    loadComponent: () => import('./pages/categorias/categorias').then(m => m.CategoriasPage),
+    path: 'cuenta',
+    title: 'Mi cuenta · Collectiverse',
+    loadComponent: () => import('./pages/cuenta/cuenta').then(m => m.CuentaPage),
   },
   {
-    path: 'login',
-    title: 'Ingresar · Collectiverse',
-    loadComponent: () => import('./pages/login/login').then(m => m.LoginPage),
+    path: 'publicar',
+    title: 'Publicar · Collectiverse',
+    canActivate: [authGuard],
+    loadComponent: () => import('./pages/publicar/publicar').then(m => m.PublicarPage),
   },
-  { path: '**', redirectTo: 'productos' },
+  { path: '**', redirectTo: 'publicaciones' },
 ];

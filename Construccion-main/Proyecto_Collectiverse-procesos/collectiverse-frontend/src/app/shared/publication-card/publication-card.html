@@ -1,0 +1,42 @@
+<article class="card">
+  <div class="thumb">
+    @if (cover(); as url) {
+      <img [src]="url" [alt]="publication().productName" loading="lazy" (error)="hideBrokenImage($event)" />
+    }
+  </div>
+
+  <div class="badges">
+    <span class="badge" [class.badge-alt]="publication().type === 'INTERCAMBIO'">{{ publication().type }}</span>
+    <span class="badge badge-muted">{{ publication().state }}</span>
+  </div>
+
+  <h3>{{ publication().title }}</h3>
+  @if (publication().description) { <p class="muted">{{ publication().description }}</p> }
+
+  <div class="product-box">
+    <strong>{{ publication().productName }}</strong>
+    <div class="badges">
+      <span class="badge">{{ publication().categoryName }}</span>
+      @if (product()?.collectionName; as col) { <span class="badge badge-alt">{{ col }}</span> }
+    </div>
+    @if (product(); as prod) {
+      <div class="meta">
+        <strong>{{ prod.price | currency }}</strong>
+        <span class="small muted">Stock: {{ prod.stock }}</span>
+      </div>
+    }
+  </div>
+
+  @if (publication().exchanges.length > 0) {
+    <div class="exchange-list">
+      <span class="small muted">A cambio de:</span>
+      <ul>
+        @for (x of publication().exchanges; track x.id) {
+          <li>{{ x.quantity }} × {{ x.requestedName }}@if (x.description) { <span class="muted"> — {{ x.description }}</span> }</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <p class="small muted">&#64;{{ publication().username }} · {{ publication().date | date: 'dd/MM/yyyy' }}</p>
+</article>
