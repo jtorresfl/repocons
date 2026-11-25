@@ -1,0 +1,24 @@
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a routerLink="/productos" class="brand">Collective<span>verse</span></a>
+
+    <nav class="nav">
+      <a routerLink="/productos" routerLinkActive="active">Productos</a>
+      <a routerLink="/publicaciones" routerLinkActive="active">Publicaciones</a>
+      <a routerLink="/categorias" routerLinkActive="active">Categorías</a>
+    </nav>
+
+    <div class="session">
+      @if (auth.username(); as user) {
+        <span class="muted">Hola, <strong>{{ user }}</strong></span>
+        <button type="button" class="btn btn-ghost" (click)="logout()">Salir</button>
+      } @else {
+        <a routerLink="/login" class="btn btn-primary">Identificarse</a>
+      }
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <router-outlet />
+</main>

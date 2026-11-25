@@ -1,0 +1,131 @@
+<section class="page-head">
+  <div>
+    <h1>Publicaciones</h1>
+    <p class="muted">Ventas e intercambios de la comunidad.</p>
+  </div>
+  @if (auth.isLoggedIn()) {
+    <button type="button" class="btn btn-primary" (click)="toggleForm()">
+      {{ showForm() ? 'Cerrar formulario' : '+ Nueva publicación' }}
+    </button>
+  } @else {
+    <a routerLink="/login" [queryParams]="{ returnUrl: '/publicaciones' }" class="btn btn-ghost">Ingresa para publicar</a>
+  }
+</section>
+
+@if (showForm() && auth.isLoggedIn()) {
+  <form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h2>Nueva publicación</h2>
+    <p class="muted">Se publicará como <strong>{{ auth.username() }}</strong>.</p>
+
+    <div class="grid-2">
+      <label class="field">
+        <span>Producto *</span>
+        <select formControlName="productId">
+          <option [ngValue]="null">Selecciona…</option>
+          @for (p of products(); track p.id) {
+            <option [ngValue]="p.id">{{ p.name }}</option>
+          }
+        </select>
+        @if (invalid('productId')) { <small class="err">Selecciona el producto a publicar</small> }
+      </label>
+
+      <label class="field">
+        <span>Tipo *</span>
+        <select formControlName="type" (change)="onTypeChange()">
+          <option value="VENTA">Venta</option>
+          <option value="INTERCAMBIO">Intercambio</option>
+        </select>
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Título *</span>
+      <input type="text" formControlName="title" maxlength="100" placeholder="Vendo Dragon Ball Tomo 1" />
+      @if (invalid('title')) { <small class="err">El título es obligatorio (máx. 100 caracteres)</small> }
+    </label>
+
+    <label class="field">
+      <span>Descripción</span>
+      <textarea formControlName="description" rows="3" maxlength="255" placeholder="En buen estado"></textarea>
+    </label>
+
+    @if (isExchange) {
+      <fieldset class="field">
+        <legend>Artículos que pides a cambio *</legend>
+        @for (ex of exchanges.controls; track $index) {
+          <div class="exchange" [formGroup]="ex">
+            <input type="text" formControlName="requestedName" placeholder="Nombre del artículo" />
+            <input type="text" formControlName="description" placeholder="Detalle (opcional)" />
+            <input type="number" formControlName="quantity" min="1" class="qty" aria-label="Cantidad" />
+            <button type="button" class="btn btn-ghost" (click)="removeExchange($index)" aria-label="Quitar">✕</button>
+          </div>
+        }
+        <button type="button" class="btn btn-ghost" (click)="addExchange()">+ Agregar artículo</button>
+      </fieldset>
+    }
+
+    @if (formError()) { <p class="alert alert-error">{{ formError() }}</p> }
+    @if (formOk()) { <p class="alert alert-ok">{{ formOk() }}</p> }
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Publicar' }}
+      </button>
+    </div>
+  </form>
+}
+
+<form class="card filters" (submit)="onSearch($event)">
+  <label class="field grow">
+    <span>Usuario</span>
+    <input type="search" name="username" [value]="username()" (input)="username.set($any($event.target).value)" placeholder="coleccionista" />
+  </label>
+  <label class="field">
+    <span>Tipo</span>
+    <select [value]="typeFilter()" (change)="onTypeFilter($any($event.target).value)">
+      <option value="">Todos</option>
+      <option value="VENTA">Venta</option>
+      <option value="INTERCAMBIO">Intercambio</option>
+    </select>
+  </label>
+  <div class="actions">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    <button type="button" class="btn btn-ghost" (click)="clearFilters()">Limpiar</button>
+  </div>
+</form>
+
+@if (loading()) {
+  <p class="muted center">Cargando publicaciones…</p>
+} @else if (error()) {
+  <p class="alert alert-error">{{ error() }}</p>
+} @else if (publications().length === 0) {
+  <p class="muted center">No se encontraron publicaciones.</p>
+} @else {
+  <p class="muted">{{ publications().length }} publicación(es)</p>
+  <div class="cards">
+    @for (p of publications(); track p.id) {
+      <article class="card">
+        <div class="badges">
+          <span class="badge" [class.badge-alt]="p.type === 'INTERCAMBIO'">{{ p.type }}</span>
+          <span class="badge badge-muted">{{ p.state }}</span>
+        </div>
+        <h3>{{ p.title }}</h3>
+        @if (p.description) { <p class="muted">{{ p.description }}</p> }
+        <p class="small">
+          <a [routerLink]="['/productos', p.idProduct]"><strong>{{ p.productName }}</strong></a> · {{ p.categoryName }}
+        </p>
+        @if (p.exchanges.length > 0) {
+          <div class="exchange-list">
+            <span class="small muted">A cambio de:</span>
+            <ul>
+              @for (x of p.exchanges; track x.id) {
+                <li>{{ x.quantity }} × {{ x.requestedName }}@if (x.description) { <span class="muted"> — {{ x.description }}</span> }</li>
+              }
+            </ul>
+          </div>
+        }
+        <p class="small muted">&#64;{{ p.username }} · {{ p.date | date: 'dd/MM/yyyy' }}</p>
+      </article>
+    }
+  </div>
+}

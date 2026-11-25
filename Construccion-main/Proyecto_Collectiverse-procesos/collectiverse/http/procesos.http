@@ -1,0 +1,153 @@
+### =====================================================================
+### Collectiverse - llamadas REST de los 2 procesos (VS Code REST Client / IntelliJ HTTP Client)
+### Sin Spring Security: ningún endpoint requiere login; el usuario viaja en el body.
+### =====================================================================
+@host = http://localhost:8080
+
+### ---------- PRE-REQUISITO: categoría y colección ----------
+POST {{host}}/api/category
+Content-Type: application/json
+
+{ "name": "Manga", "description": "Tomos de manga", "createdBy": "admin1" }
+
+###
+POST {{host}}/api/collection
+Content-Type: application/json
+
+{ "idCategory": 1, "name": "Dragon Ball", "description": "Colección Dragon Ball", "createdBy": "admin1" }
+
+
+### =====================================================================
+### PROCESO 2: Registrar y consultar un producto (cabecera Product, detalle ProductImage)
+### =====================================================================
+
+### POST /api/products  -> 201 (éxito)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{
+  "categoryId": 1,
+  "collectionId": 1,
+  "name": "Dragon Ball Tomo 1",
+  "stock": 10,
+  "price": 49.90,
+  "createdBy": "admin1",
+  "images": [
+    { "url": "https://img.test/a.jpg", "order": 1 },
+    { "url": "https://img.test/b.jpg", "order": 2 }
+  ]
+}
+
+### POST /api/products -> 404 (categoría inexistente)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{ "categoryId": 9999, "name": "Tomo X", "stock": 1, "price": 10, "createdBy": "admin1" }
+
+### POST /api/products -> 400 (stock negativo)
+POST {{host}}/api/products
+Content-Type: application/json
+
+{ "categoryId": 1, "name": "Tomo X", "stock": -1, "price": 10, "createdBy": "admin1" }
+
+### GET /api/products/{id} -> 200
+GET {{host}}/api/products/1
+
+### GET /api/products/{id} -> 404
+GET {{host}}/api/products/9999
+
+### GET search por categoría -> 200 (Query 1: findActiveByCategoryWithDetails)
+GET {{host}}/api/products/search?categoryId=1
+
+### GET search por término -> 200 (Query 2: searchActiveWithDetails)
+GET {{host}}/api/products/search?term=dragon
+
+### GET search sin filtro -> 400
+GET {{host}}/api/products/search
+
+
+### =====================================================================
+### PROCESO 1: Registrar y consultar una publicación (cabecera Publication, detalle PublicationExchange)
+### =====================================================================
+
+### POST /api/publications VENTA -> 201 (éxito)
+POST {{host}}/api/publications
+Content-Type: application/json
+
+{
+  "username": "coleccionista",
+  "productId": 1,
+  "title": "Vendo Dragon Ball Tomo 1",
+  "description": "En buen estado",
+  "type": "VENTA",
+  "state": "ACTIVA",
+  "createdBy": "coleccionista"
+}
+
+### POST /api/publications INTERCAMBIO con detalle -> 201
+POST {{host}}/api/publications
+Content-Type: application/json
+
+{
+  "username": "coleccionista",
+  "productId": 1,
+  "title": "Cambio Tomo 1 por Tomo 2",
+  "description": "Solo intercambio",
+  "type": "INTERCAMBIO",
+  "state": "ACTIVA",
+  "createdBy": "coleccionista",
+  "exchanges": [
+    { "requestedName": "Dragon Ball Tomo 2", "description": "Cualquier edición", "quantity": 1 }
+  ]
+}
+
+### POST /api/publications -> 404 (producto inexistente)
+POST {{host}}/api/publications
+Content-Type: application/json
+
+{ "username": "coleccionista", "productId": 9999, "title": "X", "type": "VENTA", "state": "ACTIVA", "createdBy": "coleccionista" }
+
+### POST /api/publications -> 400 (INTERCAMBIO sin detalle)
+POST {{host}}/api/publications
+Content-Type: application/json
+
+{ "username": "coleccionista", "productId": 1, "title": "X", "type": "INTERCAMBIO", "state": "ACTIVA", "createdBy": "coleccionista" }
+
+### GET /api/publications/{id} -> 200
+GET {{host}}/api/publications/1
+
+### GET /api/publications/{id} -> 404
+GET {{host}}/api/publications/9999
+
+### GET search por username -> 200 (Query 1: findActiveByUsernameWithDetails)
+GET {{host}}/api/publications/search?username=coleccionista
+
+### GET search sin username -> 400
+GET {{host}}/api/publications/search
+
+### GET por tipo -> 200 (Query 2: findActiveByTypeWithDetails)
+GET {{host}}/api/publications/by-type?type=INTERCAMBIO
+
+### GET por tipo inválido -> 400
+GET {{host}}/api/publications/by-type?type=REGALO
+
+### POST /api/users -> 201
+POST {{host}}/api/users
+Content-Type: application/json
+
+{ "username": "joel", "email": "joel@correo.com", "password": "Clave12345", "phone": "+51999888777" }
+
+### POST /api/users -> 409 (repetido)
+POST {{host}}/api/users
+Content-Type: application/json
+
+{ "username": "joel", "email": "otro@correo.com", "password": "Clave12345" }
+
+### POST /api/users -> 400 (correo inválido y contraseña corta)
+POST {{host}}/api/users
+Content-Type: application/json
+
+{ "username": "ana", "email": "no-es-correo", "password": "123" }
+
+### GET /api/users/joel -> 200 (sin contraseña en la respuesta)
+GET {{host}}/api/users/joel

@@ -1,0 +1,15 @@
+<section class="auth card form">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label class="field">
+      <span>Nombre de usuario</span>
+      <input type="text" formControlName="username" autocomplete="username" maxlength="50" />
+      @if (invalid()) { <small class="err">El usuario es obligatorio</small> }
+    </label>
+
+    @if (error()) { <p class="alert alert-error">{{ error() }}</p> }
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary block">Continuar</button>
+    </div>
+  </form>
+</section>

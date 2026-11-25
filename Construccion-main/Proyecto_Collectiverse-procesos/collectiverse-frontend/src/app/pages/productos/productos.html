@@ -1,0 +1,140 @@
+<section class="page-head">
+  <div>
+    <h1>Catálogo de productos</h1>
+    <p class="muted">Consulta y registra productos coleccionables.</p>
+  </div>
+  @if (auth.isLoggedIn()) {
+    <button type="button" class="btn btn-primary" (click)="toggleForm()">
+      {{ showForm() ? 'Cerrar formulario' : '+ Registrar producto' }}
+    </button>
+  } @else {
+    <a routerLink="/login" [queryParams]="{ returnUrl: '/productos' }" class="btn btn-ghost">Ingresa para registrar</a>
+  }
+</section>
+
+@if (showForm() && auth.isLoggedIn()) {
+  <form class="card form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h2>Nuevo producto</h2>
+
+    <div class="grid-2">
+      <label class="field">
+        <span>Categoría *</span>
+        <select formControlName="categoryId" (change)="onCategoryFormChange()">
+          <option [ngValue]="null">Selecciona…</option>
+          @for (c of categories(); track c.id) {
+            <option [ngValue]="c.id">{{ c.name }}</option>
+          }
+        </select>
+        @if (invalid('categoryId')) { <small class="err">La categoría es obligatoria</small> }
+        @if (categories().length === 0) {
+          <small class="muted">No hay categorías. <a routerLink="/categorias">Crea una primero</a>.</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Colección (opcional)</span>
+        <select formControlName="collectionId">
+          <option [ngValue]="null">Sin colección</option>
+          @for (c of collectionsOfCategory(); track c.id) {
+            <option [ngValue]="c.id">{{ c.name }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Nombre *</span>
+      <input type="text" formControlName="name" maxlength="100" placeholder="Dragon Ball Tomo 1" />
+      @if (invalid('name')) { <small class="err">El nombre es obligatorio (máx. 100 caracteres)</small> }
+    </label>
+
+    <div class="grid-2">
+      <label class="field">
+        <span>Stock *</span>
+        <input type="number" formControlName="stock" min="0" step="1" />
+        @if (invalid('stock')) { <small class="err">El stock no puede ser negativo</small> }
+      </label>
+      <label class="field">
+        <span>Precio *</span>
+        <input type="number" formControlName="price" min="0" step="0.01" />
+        @if (invalid('price')) { <small class="err">El precio no puede ser negativo</small> }
+      </label>
+    </div>
+
+    <fieldset class="field">
+      <legend>Imágenes (URL)</legend>
+      @for (img of images.controls; track $index) {
+        <div class="row" [formGroup]="img">
+          <input type="url" formControlName="url" placeholder="https://…" />
+          <button type="button" class="btn btn-ghost" (click)="removeImage($index)" aria-label="Quitar imagen">✕</button>
+        </div>
+      }
+      <button type="button" class="btn btn-ghost" (click)="addImage()">+ Agregar imagen</button>
+    </fieldset>
+
+    @if (formError()) { <p class="alert alert-error">{{ formError() }}</p> }
+    @if (formOk()) { <p class="alert alert-ok">{{ formOk() }}</p> }
+
+    <div class="actions">
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">
+        {{ saving() ? 'Guardando…' : 'Registrar producto' }}
+      </button>
+    </div>
+  </form>
+}
+
+<form class="card filters" (submit)="onSearch($event)">
+  <label class="field grow">
+    <span>Buscar por nombre</span>
+    <input type="search" name="term" [value]="term()" (input)="term.set($any($event.target).value)" placeholder="dragon" />
+  </label>
+  <label class="field">
+    <span>Categoría</span>
+    <select [value]="categoryFilter() ?? ''" (change)="onCategoryChange($any($event.target).value)">
+      <option value="">Todas</option>
+      @for (c of knownCategories(); track c.id) {
+        <option [value]="c.id">{{ c.name }}</option>
+      }
+    </select>
+  </label>
+  <div class="actions">
+    <button type="submit" class="btn btn-primary">Buscar</button>
+    <button type="button" class="btn btn-ghost" (click)="clearFilters()">Limpiar</button>
+  </div>
+</form>
+
+@if (loading()) {
+  <p class="muted center">Cargando productos…</p>
+} @else if (error()) {
+  <p class="alert alert-error">{{ error() }}</p>
+} @else if (products().length === 0) {
+  <p class="muted center">No se encontraron productos.</p>
+} @else {
+  <p class="muted">{{ products().length }} producto(s)</p>
+  <div class="cards">
+    @for (p of products(); track p.id) {
+      <article class="card product">
+        <div class="thumb">
+          @if (p.images.length > 0) {
+            <img [src]="p.images[0].url" [alt]="p.name" loading="lazy" (error)="hideBrokenImage($event)" />
+          }
+        </div>
+        <h3><a [routerLink]="['/productos', p.id]" class="plain">{{ p.name }}</a></h3>
+        <div class="badges">
+          <span class="badge">{{ p.categoryName }}</span>
+          @if (p.collectionName) { <span class="badge badge-alt">{{ p.collectionName }}</span> }
+        </div>
+        <div class="meta">
+          <span class="muted">Referencial <strong>{{ p.price | currency }}</strong></span>
+        </div>
+        <a [routerLink]="['/productos', p.id]" class="btn btn-ghost block">
+          @if (offerCount().get(p.id); as n) {
+            Ver {{ n }} {{ n === 1 ? 'oferta' : 'ofertas' }}
+          } @else {
+            Sin ofertas aún
+          }
+        </a>
+      </article>
+    }
+  </div>
+}
